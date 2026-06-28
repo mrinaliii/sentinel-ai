@@ -1,0 +1,109 @@
+{
+  "type": "bundle",
+  "id": "bundle--test-mitre-fixture",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--exec-001",
+      "name": "Command and Scripting Interpreter",
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries. PowerShell, Unix shell, Python.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "execution" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1059" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--exec-002",
+      "name": "PowerShell",
+      "description": "Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful interactive command-line interface.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "execution" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1059.001" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--cred-001",
+      "name": "OS Credential Dumping",
+      "description": "Adversaries may attempt to dump credentials to obtain account login and credential material. LSASS memory, SAM database, DCSync.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "credential-access" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1003" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--disc-001",
+      "name": "Network Service Discovery",
+      "description": "Adversaries may attempt to get a listing of services running on remote hosts and local network infrastructure, including port scanning.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "discovery" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1046" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--lat-001",
+      "name": "Remote Services",
+      "description": "Adversaries may use valid accounts to log into a service that accepts remote connections such as SSH, RDP, VNC, SMB.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "lateral-movement" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1021" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--priv-001",
+      "name": "Process Injection",
+      "description": "Adversaries may inject code into processes to evade process-based defenses and possibly elevate privileges.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "privilege-escalation" },
+        { "kill_chain_name": "mitre-attack", "phase_name": "defense-evasion" }
+      ],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T1055" }
+      ],
+      "x_mitre_deprecated": false,
+      "revoked": false
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--revoked-001",
+      "name": "Revoked Technique",
+      "description": "This technique is revoked.",
+      "kill_chain_phases": [],
+      "external_references": [
+        { "source_name": "mitre-attack", "external_id": "T9999" }
+      ],
+      "revoked": true
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--sub-001",
+      "relationship_type": "subtechnique-of",
+      "source_ref": "attack-pattern--exec-002",
+      "target_ref": "attack-pattern--exec-001"
+    }
+  ]
+}

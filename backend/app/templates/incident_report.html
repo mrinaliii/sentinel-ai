@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} — Incident Report</title>
+  <style>
+    /* ── Google Fonts (embedded subset for offline PDF rendering) ──────── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    /* ── CSS Reset & Variables ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg:            #0f1117;
+      --color-surface:       #1a1d27;
+      --color-surface-2:     #222536;
+      --color-border:        #2e3248;
+      --color-text:          #e2e8f0;
+      --color-text-muted:    #94a3b8;
+      --color-accent:        #6366f1;
+      --color-accent-glow:   #818cf8;
+
+      --sev-critical-bg:     #450a0a;
+      --sev-critical-fg:     #fca5a5;
+      --sev-critical-border: #ef4444;
+
+      --sev-high-bg:         #431407;
+      --sev-high-fg:         #fdba74;
+      --sev-high-border:     #f97316;
+
+      --sev-medium-bg:       #422006;
+      --sev-medium-fg:       #fde047;
+      --sev-medium-border:   #eab308;
+
+      --sev-low-bg:          #052e16;
+      --sev-low-fg:          #86efac;
+      --sev-low-border:      #22c55e;
+
+      --sev-info-bg:         #0c1a2e;
+      --sev-info-fg:         #93c5fd;
+      --sev-info-border:     #3b82f6;
+
+      --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      --radius:       8px;
+      --radius-sm:    4px;
+    }
+
+    /* ── Page Layout (WeasyPrint) ─────────────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 20mm 18mm 22mm 18mm;
+      @bottom-center {
+        content: "CONFIDENTIAL — SENTINEL-AI SOC REPORT  |  Page " counter(page) " of " counter(pages);
+        font-family: var(--font-body);
+        font-size: 8pt;
+        color: #475569;
+        border-top: 1px solid #2e3248;
+        padding-top: 6pt;
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    html, body {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.65;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────────── */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 24pt 28pt;
+      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      margin-bottom: 18pt;
+      page-break-inside: avoid;
+    }
+
+    .header-left {
+      flex: 1;
+    }
+
+    .org-name {
+      font-size: 8pt;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-accent-glow);
+      margin-bottom: 6pt;
+    }
+
+    .report-title {
+      font-size: 18pt;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.3;
+      margin-bottom: 8pt;
+    }
+
+    .report-subtitle {
+      font-size: 9pt;
+      color: var(--color-text-muted);
+    }
+
+    .header-right {
+      text-align: right;
+      min-width: 180pt;
+    }
+
+    .severity-badge {
+      display: inline-block;
+      padding: 5pt 14pt;
+      border-radius: 20pt;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10pt;
+    }
+
+    .sev-critical { background: var(--sev-critical-bg); color: var(--sev-critical-fg); border: 1.5px solid var(--sev-critical-border); }
+    .sev-high     { background: var(--sev-high-bg);     color: var(--sev-high-fg);     border: 1.5px solid var(--sev-high-border);     }
+    .sev-medium   { background: var(--sev-medium-bg);   color: var(--sev-medium-fg);   border: 1.5px solid var(--sev-medium-border);   }
+    .sev-low      { background: var(--sev-low-bg);      color: var(--sev-low-fg);      border: 1.5px solid var(--sev-low-border);      }
+    .sev-informational { background: var(--sev-info-bg); color: var(--sev-info-fg);  border: 1.5px solid var(--sev-info-border); }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2pt 10pt;
+      font-size: 8.5pt;
+      text-align: left;
+      margin-top: 6pt;
+    }
+    .meta-label  { color: var(--color-text-muted); font-weight: 500; }
+    .meta-value  { color: var(--color-text); font-family: var(--font-mono); font-size: 8pt; }
+
+    /* ── Section containers ──────────────────────────────────────────── */
+    .section {
+      margin-bottom: 16pt;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8pt;
+      padding: 10pt 16pt;
+      background: var(--color-surface-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-icon {
+      font-size: 12pt;
+    }
+
+    .section-title {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.02em;
+    }
+
+    .section-number {
+      font-size: 8pt;
+      color: var(--color-accent-glow);
+      font-family: var(--font-mono);
+      margin-left: auto;
+    }
+
+    .section-body {
+      padding: 14pt 16pt;
+    }
+
+    /* ── Typography ──────────────────────────────────────────────────── */
+    p { margin-bottom: 7pt; }
+    p:last-child { margin-bottom: 0; }
+
+    strong { font-weight: 600; color: #f1f5f9; }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 8.5pt;
+      background: #0f1117;
+      color: #a5b4fc;
+      padding: 1pt 4pt;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    /* ── Ordered / Unordered Lists ───────────────────────────────────── */
+    ol, ul {
+      padding-left: 16pt;
+      margin: 4pt 0;
+    }
+    li {
+      margin-bottom: 4pt;
+      font-size: 9.5pt;
+    }
+    li::marker {
+      color: var(--color-accent-glow);
+    }
+
+    /* ── Tables ─────────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+    }
+
+    thead th {
+      background: #1e2235;
+      color: var(--color-accent-glow);
+      font-weight: 600;
+      font-size: 8pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 7pt 10pt;
+      text-align: left;
+      border-bottom: 2px solid var(--color-accent);
+    }
+
+    tbody tr:nth-child(even) { background: #171a26; }
+    tbody tr:nth-child(odd)  { background: var(--color-surface); }
+
+    tbody td {
+      padding: 6pt 10pt;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+      color: var(--color-text);
+    }
+
+    .td-mono {
+      font-family: var(--font-mono);
+      font-size: 8pt;
+      color: #a5b4fc;
+    }
+
+    /* ── MITRE technique-ID pill ────────────────────────────────────── */
+    .technique-id {
+      display: inline-block;
+      padding: 2pt 7pt;
+      background: #1e1b4b;
+      color: #a5b4fc;
+      border: 1px solid #4338ca;
+      border-radius: 12pt;
+      font-family: var(--font-mono);
+      font-size: 8pt;
+      font-weight: 500;
+    }
+
+    /* ── Confidence bar ──────────────────────────────────────────────── */
+    .confidence-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6pt;
+    }
+    .confidence-bar-bg {
+      flex: 1;
+      height: 6pt;
+      background: #1e2235;
+      border-radius: 3pt;
+      overflow: hidden;
+    }
+    .confidence-bar-fill {
+      height: 100%;
+      border-radius: 3pt;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+    }
+    .confidence-label {
+      font-size: 8pt;
+      color: var(--color-text-muted);
+      min-width: 28pt;
+      text-align: right;
+    }
+
+    /* ── Callout boxes ───────────────────────────────────────────────── */
+    .callout {
+      padding: 10pt 14pt;
+      border-radius: var(--radius-sm);
+      border-left: 3pt solid;
+      margin-bottom: 8pt;
+      font-size: 9.5pt;
+    }
+
+    .callout-risk {
+      background: #1c0a0a;
+      border-color: var(--sev-critical-border);
+      color: #fca5a5;
+    }
+
+    .callout-info {
+      background: #0c1a2e;
+      border-color: #3b82f6;
+      color: #93c5fd;
+    }
+
+    .callout-success {
+      background: #062010;
+      border-color: #22c55e;
+      color: #86efac;
+    }
+
+    /* ── Timeline ────────────────────────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-left: 16pt;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5pt;
+      top: 0;
+      bottom: 0;
+      width: 2pt;
+      background: linear-gradient(to bottom, var(--color-accent), transparent);
+      border-radius: 2pt;
+    }
+
+    .timeline-event {
+      position: relative;
+      padding: 8pt 0 8pt 14pt;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .timeline-event:last-child {
+      border-bottom: none;
+    }
+
+    .timeline-event::before {
+      content: '';
+      position: absolute;
+      left: -11.5pt;
+      top: 12pt;
+      width: 8pt;
+      height: 8pt;
+      background: var(--color-accent);
+      border-radius: 50%;
+      border: 2pt solid var(--color-bg);
+    }
+
+    .timeline-ts {
+      font-family: var(--font-mono);
+      font-size: 8pt;
+      color: var(--color-accent-glow);
+      margin-bottom: 2pt;
+    }
+
+    .timeline-type {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 1pt 6pt;
+      border-radius: 10pt;
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      margin-right: 6pt;
+    }
+
+    .timeline-desc {
+      font-size: 9.5pt;
+      color: var(--color-text);
+      margin-top: 3pt;
+    }
+
+    /* ── IOC severity ────────────────────────────────────────────────── */
+    .ioc-malicious   { color: #fca5a5; font-weight: 600; }
+    .ioc-suspicious  { color: #fdba74; font-weight: 600; }
+    .ioc-clean       { color: #86efac; }
+    .ioc-unknown     { color: var(--color-text-muted); }
+
+    /* ── Tag pills ───────────────────────────────────────────────────── */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 4pt; margin-top: 4pt; }
+    .tag {
+      padding: 2pt 8pt;
+      background: #1e2235;
+      color: #94a3b8;
+      border: 1px solid #2e3248;
+      border-radius: 10pt;
+      font-size: 8pt;
+    }
+
+    /* ── Pre / code blocks ───────────────────────────────────────────── */
+    pre {
+      font-family: var(--font-mono);
+      font-size: 8pt;
+      background: #0a0c12;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10pt 12pt;
+      overflow-x: auto;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── Horizontal rule ─────────────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 10pt 0;
+    }
+
+    /* ── Classification footer ───────────────────────────────────────── */
+    .classification-banner {
+      text-align: center;
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #ef4444;
+      padding: 6pt;
+      border: 1px solid #ef444455;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12pt;
+      background: #450a0a22;
+    }
+
+    /* ── Page break hints ───────────────────────────────────────────── */
+    .page-break-before { page-break-before: always; }
+    .no-break          { page-break-inside: avoid; }
+
+    /* ── Appendix ────────────────────────────────────────────────────── */
+    .appendix-pre {
+      font-family: var(--font-mono);
+      font-size: 7.5pt;
+      background: #0a0c12;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10pt;
+      color: #64748b;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Classification Banner ──────────────────────────────────────────── -->
+  <div class="classification-banner">⚠ CONFIDENTIAL — INTERNAL SOC USE ONLY ⚠</div>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="report-header no-break">
+    <div class="header-left">
+      <div class="org-name">{{ organization }} · Incident Report</div>
+      <div class="report-title">{{ title }}</div>
+      <div class="report-subtitle">
+        {% if classification %}Classification: <strong>{{ classification }}</strong> · {% endif %}
+        Status: <strong>{{ status }}</strong>
+      </div>
+      {% if tags %}
+      <div class="tag-list" style="margin-top:8pt;">
+        {% for tag in tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="header-right">
+      <div class="severity-badge sev-{{ severity }}">{{ severity | upper }}</div>
+      <div class="meta-grid">
+        <span class="meta-label">Case ID</span>
+        <span class="meta-value">{{ incident_id }}</span>
+        <span class="meta-label">Report ID</span>
+        <span class="meta-value">{{ report_id }}</span>
+        <span class="meta-label">Detected</span>
+        <span class="meta-value">{{ detected_at }}</span>
+        <span class="meta-label">Reported</span>
+        <span class="meta-value">{{ reported_at }}</span>
+        <span class="meta-label">Analyst</span>
+        <span class="meta-value">{{ analyst_name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 1. Executive Summary ───────────────────────────────────────────── -->
+  <div class="section no-break">
+    <div class="section-header">
+      <span class="section-icon">🔎</span>
+      <span class="section-title">Executive Summary</span>
+      <span class="section-number">§ 1</span>
+    </div>
+    <div class="section-body">
+      <p>{{ alert_analysis.summary }}</p>
+      {% if affected_hosts or affected_users %}
+      <hr/>
+      <div style="display:flex; gap:24pt;">
+        {% if affected_hosts %}
+        <div>
+          <div class="meta-label" style="font-size:8pt;margin-bottom:4pt;">AFFECTED HOSTS</div>
+          <ul style="margin:0;padding-left:12pt;">
+            {% for h in affected_hosts %}<li><code>{{ h }}</code></li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if affected_users %}
+        <div>
+          <div class="meta-label" style="font-size:8pt;margin-bottom:4pt;">AFFECTED USERS</div>
+          <ul style="margin:0;padding-left:12pt;">
+            {% for u in affected_users %}<li><code>{{ u }}</code></li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if source_system %}
+        <div>
+          <div class="meta-label" style="font-size:8pt;margin-bottom:4pt;">SOURCE SYSTEM</div>
+          <p><code>{{ source_system }}</code></p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── 2. Risk Assessment ─────────────────────────────────────────────── -->
+  <div class="section no-break">
+    <div class="section-header">
+      <span class="section-icon">⚡</span>
+      <span class="section-title">Risk Assessment &amp; Business Impact</span>
+      <span class="section-number">§ 2</span>
+    </div>
+    <div class="section-body">
+      <div class="callout callout-risk">{{ alert_analysis.risk_assessment }}</div>
+    </div>
+  </div>
+
+  <!-- ── 3. MITRE ATT&CK Mapping ────────────────────────────────────────── -->
+  {% if mitre_matches %}
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🎯</span>
+      <span class="section-title">MITRE ATT&amp;CK Technique Mapping</span>
+      <span class="section-number">§ 3</span>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Technique ID</th>
+            <th>Name</th>
+            <th>Tactic</th>
+            <th>Confidence</th>
+            <th>Method</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in mitre_matches %}
+          <tr>
+            <td><span class="technique-id">{{ m.technique_id }}{% if m.sub_technique_id %} / {{ m.sub_technique_id }}{% endif %}</span></td>
+            <td>{{ m.technique_name }}{% if m.sub_technique %}<br/><small style="color:#64748b;">↳ {{ m.sub_technique }}</small>{% endif %}</td>
+            <td>
+              <span style="font-size:8pt;color:#94a3b8;">{{ m.tactic_id }}</span><br/>
+              {{ m.tactic }}
+            </td>
+            <td>
+              <div class="confidence-bar-wrap">
+                <div class="confidence-bar-bg">
+                  <div class="confidence-bar-fill" style="width:{{ (m.confidence * 100) | int }}%;"></div>
+                </div>
+                <span class="confidence-label">{{ (m.confidence * 100) | int }}%</span>
+              </div>
+            </td>
+            <td><code>{{ m.mapping_method }}</code></td>
+            <td style="font-size:8.5pt;color:#94a3b8;">{{ m.rationale or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 4. Investigation Notes ─────────────────────────────────────────── -->
+  {% if investigation_notes %}
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <span class="section-title">Investigation Notes</span>
+      <span class="section-number">§ 4</span>
+    </div>
+    <div class="section-body">
+      {{ investigation_notes_html | safe }}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 5. Investigation Steps ─────────────────────────────────────────── -->
+  {% if alert_analysis.investigation_steps %}
+  <div class="section no-break">
+    <div class="section-header">
+      <span class="section-icon">🔬</span>
+      <span class="section-title">Recommended Investigation Steps</span>
+      <span class="section-number">§ 5</span>
+    </div>
+    <div class="section-body">
+      <ol>
+        {% for step in alert_analysis.investigation_steps %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 6. Recommended Actions ─────────────────────────────────────────── -->
+  {% if alert_analysis.recommended_actions %}
+  <div class="section no-break">
+    <div class="section-header">
+      <span class="section-icon">🛡️</span>
+      <span class="section-title">Recommended Remediation Actions</span>
+      <span class="section-number">§ 6</span>
+    </div>
+    <div class="section-body">
+      <ol>
+        {% for action in alert_analysis.recommended_actions %}
+        <li>{{ action }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 7. IOC Table ───────────────────────────────────────────────────── -->
+  {% if iocs %}
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🔴</span>
+      <span class="section-title">Indicators of Compromise (IOCs)</span>
+      <span class="section-number">§ 7</span>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th>Type</th>
+            <th>Verdict</th>
+            <th>Rep. Score</th>
+            <th>Sources</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ioc in iocs %}
+          <tr>
+            <td class="td-mono">{{ ioc.value }}</td>
+            <td><code>{{ ioc.ioc_type }}</code></td>
+            <td>
+              {% if ioc.malicious == true %}
+                <span class="ioc-malicious">⛔ MALICIOUS</span>
+              {% elif ioc.malicious == false %}
+                <span class="ioc-clean">✓ Clean</span>
+              {% else %}
+                <span class="ioc-unknown">— Unknown</span>
+              {% endif %}
+            </td>
+            <td class="td-mono">
+              {% if ioc.reputation_score is not none %}
+                {{ ioc.reputation_score | round(1) }}/100
+              {% else %}—{% endif %}
+            </td>
+            <td style="font-size:8.5pt;">{{ ioc.sources | join(', ') or '—' }}</td>
+            <td>
+              <div class="tag-list">
+                {% for tag in ioc.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 8. Forensic Timeline ───────────────────────────────────────────── -->
+  {% if timeline %}
+  <div class="section page-break-before">
+    <div class="section-header">
+      <span class="section-icon">⏱️</span>
+      <span class="section-title">Forensic Event Timeline</span>
+      <span class="section-number">§ 8</span>
+    </div>
+    <div class="section-body">
+      <div class="timeline">
+        {% for event in timeline %}
+        <div class="timeline-event">
+          <div class="timeline-ts">{{ event.timestamp }}</div>
+          <span class="timeline-type">{{ event.event_type }}</span>
+          {% if event.actor %}<small style="color:#64748b;">by {{ event.actor }}</small>{% endif %}
+          <div class="timeline-desc">{{ event.description }}</div>
+          {% if event.reference_id %}
+          <div style="margin-top:2pt;"><small class="meta-label">Ref: </small><code>{{ event.reference_id }}</code></div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 9. Appendix ────────────────────────────────────────────────────── -->
+  {% if include_appendix and raw_alert_metadata %}
+  <div class="section page-break-before">
+    <div class="section-header">
+      <span class="section-icon">📎</span>
+      <span class="section-title">Appendix — Raw Alert Metadata</span>
+      <span class="section-number">§ A</span>
+    </div>
+    <div class="section-body">
+      <div class="callout callout-info">Raw alert data as ingested. For forensic reference only.</div>
+      <pre class="appendix-pre">{{ raw_alert_json }}</pre>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Signature ──────────────────────────────────────────────────────── -->
+  <div style="margin-top:18pt;padding:12pt 16pt;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);display:flex;justify-content:space-between;font-size:9pt;" class="no-break">
+    <div>
+      <div class="meta-label">Prepared By</div>
+      <div style="color:#f1f5f9;font-weight:600;">{{ analyst_name }}</div>
+      {% if analyst_email %}<div class="meta-value">{{ analyst_email }}</div>{% endif %}
+    </div>
+    <div style="text-align:center;">
+      <div class="meta-label">Generated</div>
+      <div class="meta-value">{{ generated_at }}</div>
+      <div class="meta-label" style="margin-top:4pt;">Tool</div>
+      <div style="color:var(--color-accent-glow);font-weight:600;font-size:8pt;">SENTINEL-AI v1</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="meta-label">Report ID</div>
+      <div class="meta-value">{{ report_id }}</div>
+      <div class="meta-label" style="margin-top:4pt;">Incident</div>
+      <div class="meta-value">{{ incident_id }}</div>
+    </div>
+  </div>
+
+</body>
+</html>

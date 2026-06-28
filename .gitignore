@@ -1,5 +1,31 @@
+# Python
 __pycache__/
 *.pyc
 .pytest_cache/
 .coverage
 htmlcov/
+.venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Reports
+backend/app/reports/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

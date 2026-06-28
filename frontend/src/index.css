@@ -1,0 +1,272 @@
+/* ============================================================
+   SentinelAI — Global Stylesheet
+   Tailwind v4 CSS-first configuration + design token system
+   Source of truth: frontend/DESIGN.md
+   ============================================================ */
+
+/* Geist + Geist Mono via Fontsource */
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/300.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/300.css";
+
+@import "tailwindcss";
+
+/* ============================================================
+   Tailwind v4 Theme — Design Tokens
+   ============================================================ */
+@theme {
+  /* ── Colors ───────────────────────────────────────────── */
+  --color-slate-canvas: #1c1e21;
+  --color-ink-well: #121317;
+  --color-graphite-hairline: #3b3e45;
+  --color-steel-border: #272a2e;
+  --color-ash-text: #b5b8c0;
+  --color-fog-text: #878c99;
+  --color-cloud-text: #d7d9dd;
+  --color-bone-text: #e5e7eb;
+
+  /* Brand accent */
+  --color-signal-lime: #a8ff53;
+
+  /* Syntax / chromatic */
+  --color-syntax-violet: #9c9af2;
+  --color-syntax-pink: #fa3abf;
+  --color-event-violet: #7655fd;
+  --color-loop-green: #afec73;
+  --color-key-lime: #d9f07c;
+  --color-tag-magenta: #e888f8;
+  --color-mute-red: #f43f5e;
+
+  /* Severity (SentinelAI extension) */
+  --color-severity-critical: #f43f5e;
+  --color-severity-high: #fa3abf;
+  --color-severity-medium: #9c9af2;
+  --color-severity-low: #afec73;
+  --color-severity-info: #878c99;
+
+  /* Alert status (SentinelAI extension) */
+  --color-status-open: #f43f5e;
+  --color-status-triaging: #d9f07c;
+  --color-status-in-progress: #9c9af2;
+  --color-status-escalated: #fa3abf;
+  --color-status-resolved: #878c99;
+  --color-status-false-positive: #3b3e45;
+  --color-status-suppressed: #3b3e45;
+
+  /* Incident status (SentinelAI extension) */
+  --color-incident-open: #f43f5e;
+  --color-incident-investigating: #9c9af2;
+  --color-incident-contained: #a8ff53;
+  --color-incident-eradicated: #d9f07c;
+  --color-incident-recovered: #afec73;
+  --color-incident-closed: #878c99;
+
+  /* Timeline event colors */
+  --color-timeline-alert: #9c9af2;
+  --color-timeline-escalated: #fa3abf;
+  --color-timeline-contained: #a8ff53;
+  --color-timeline-closed: #878c99;
+
+  /* ── Typography ───────────────────────────────────────── */
+  --font-satoshi: "Satoshi", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-geist: "Geist", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+
+  /* Type scale */
+  --text-caption: 14px;
+  --leading-caption: 1.43;
+  --text-body: 16px;
+  --leading-body: 1.56;
+  --text-body-lg: 18px;
+  --leading-body-lg: 1.5;
+  --text-subheading: 20px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: 0.4px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.38;
+  --text-heading: 30px;
+  --leading-heading: 1.33;
+  --text-heading-lg: 36px;
+  --leading-heading-lg: 1.2;
+  --tracking-heading-lg: 1.8px;
+  --text-display: 48px;
+  --leading-display: 1.11;
+  --tracking-display: 2.4px;
+
+  /* Font weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* ── Spacing ──────────────────────────────────────────── */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-160: 160px;
+  --spacing-192: 192px;
+
+  /* ── Border Radius ────────────────────────────────────── */
+  /* max 4px on rectangles per design spec */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-full: 9999px;
+
+  /* Named radii */
+  --radius-cards: 4px;
+  --radius-pills: 9999px;
+  --radius-inputs: 4px;
+  --radius-buttons: 4px;
+}
+
+/* ============================================================
+   CSS Custom Properties (available outside Tailwind utilities)
+   ============================================================ */
+:root {
+  --sidebar-width: 260px;
+  --header-height: 48px;
+  --content-max-width: 1440px;
+}
+
+/* ============================================================
+   Base Reset & Global Styles
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Force dark — SentinelAI is always dark-mode */
+  color-scheme: dark;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-slate-canvas);
+  color: var(--color-bone-text);
+  font-family: var(--font-geist);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Focus ring ─────────────────────────────────────────────── */
+/* Keyboard-accessible focus ring using lime accent */
+:focus-visible {
+  outline: 1px solid var(--color-signal-lime);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ink-well);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-steel-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-graphite-hairline);
+}
+
+/* ── Selection ──────────────────────────────────────────────── */
+::selection {
+  background-color: rgba(168, 255, 83, 0.15);
+  color: var(--color-bone-text);
+}
+
+/* ── Typography helpers ─────────────────────────────────────── */
+.font-satoshi {
+  font-family: var(--font-satoshi);
+}
+
+.font-geist {
+  font-family: var(--font-geist);
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono);
+}
+
+/* ── Terminal / Log pane (design spec) ──────────────────────── */
+.terminal-pane {
+  background: var(--color-ink-well);
+  border: 1px solid var(--color-steel-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  overflow: auto;
+  font-family: var(--font-geist-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-bone-text);
+}
+
+/* ── Code / ID text ─────────────────────────────────────────── */
+code,
+kbd,
+.text-mono {
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  color: var(--color-signal-lime);
+}
+
+/* ── Dividers ───────────────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-steel-border);
+}
+
+/* ── Links ──────────────────────────────────────────────────── */
+a {
+  color: var(--color-signal-lime);
+  text-decoration: none;
+  transition: color 100ms ease;
+}
+
+a:hover {
+  color: var(--color-bone-text);
+}
+
+/* ── Remove default button styles ───────────────────────────── */
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Suppress input autofill styles ─────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-ink-well) inset;
+  -webkit-text-fill-color: var(--color-bone-text);
+  caret-color: var(--color-bone-text);
+}
